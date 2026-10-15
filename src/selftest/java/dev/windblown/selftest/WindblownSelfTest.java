@@ -529,9 +529,9 @@ public final class WindblownSelfTest {
                 int z = 12 + (i * 7) % 26;
                 run(mc, "setblock " + x + " " + f + " " + z + " minecraft:" + flowers[i % flowers.length]);
             }
-            for (int[] c : new int[][]{{2, 20}, {12, 18}, {-9, 10}}) {
-                run(mc, "fill " + (c[0] - 1) + " " + f + " " + (c[1] - 1) + " " + (c[0] + 1) + " " + (f + 1) + " "
-                        + (c[1] + 1) + " minecraft:air");
+            for (int[] c : new int[][]{{3, 19}, {12, 18}, {-7, 14}, {0, 14}}) {
+                run(mc, "fill " + (c[0] - 2) + " " + f + " " + (c[1] - 2) + " " + (c[0] + 2) + " " + (f + 1) + " "
+                        + (c[1] + 2) + " minecraft:air");
             }
         });
         then(10, () -> {
@@ -556,25 +556,25 @@ public final class WindblownSelfTest {
         then(80, () -> {
             run(mc, "kill @e[type=item]");
             run(mc, "gamemode spectator @p");
-            run(mc, "tp @p 2.5 " + (f + 0.3) + " 20.5 -15 -2");
-            Ui.fov(mc, 50);
+            run(mc, "tp @p 3.5 " + (f + 1.2) + " 19.5 -25 6");
+            Ui.fov(mc, 55);
             config.setStrength(3f);
         });
-        pan(-15, -15, -2, -2, 1);
+        pan(-25, -25, 6, 6, 1);
         then(60, () -> startFilm(mc, "1-breeze"));
         seconds(10, WindblownSelfTest::stopFilm);
         then(0, () -> {
-            run(mc, "tp @p -6.5 " + (f + 0.3) + " 14.5 -30 -1");
-            Ui.fov(mc, 42);
+            run(mc, "tp @p -6.5 " + (f + 1.3) + " 14.5 -15 14");
+            Ui.fov(mc, 55);
         });
-        pan(-30, -30, -1, -1, 1);
+        pan(-15, -15, 14, 14, 1);
         then(60, () -> startFilm(mc, "2-pan"));
         seconds(9, WindblownSelfTest::stopFilm);
         then(0, () -> {
-            run(mc, "tp @p 2.5 " + (f + 0.3) + " 20.5 -15 -2");
-            Ui.fov(mc, 50);
+            run(mc, "tp @p 3.5 " + (f + 1.2) + " 19.5 -25 6");
+            Ui.fov(mc, 55);
         });
-        pan(-15, -15, -2, -2, 1);
+        pan(-25, -25, 6, 6, 1);
         then(0, () -> run(mc, "weather thunder"));
         within(800, () -> WindState.weather() > 2.2f, () -> startFilm(mc, "3-storm"));
         seconds(9, WindblownSelfTest::stopFilm);
@@ -584,10 +584,10 @@ public final class WindblownSelfTest {
         then(60, () -> startFilm(mc, "5-wheat"));
         seconds(6, WindblownSelfTest::stopFilm);
         then(0, () -> {
-            run(mc, "tp @p 4.5 " + (f + 1.6) + " 26.5 -45 -32");
+            run(mc, "tp @p 4.5 " + (f + 1.6) + " 26.5 -22 -32");
             Ui.fov(mc, 70);
         });
-        pan(-45, -45, -32, -32, 1);
+        pan(-22, -22, -32, -32, 1);
         then(60, () -> startFilm(mc, "6-leaves"));
         seconds(6, WindblownSelfTest::stopFilm);
         then(0, () -> {
@@ -598,17 +598,17 @@ public final class WindblownSelfTest {
         then(60, () -> startFilm(mc, "7-kelp"));
         seconds(6, WindblownSelfTest::stopFilm);
         then(0, () -> {
-            run(mc, "tp @p 12.5 " + (f + 0.3) + " 18.5 30 -2");
-            Ui.fov(mc, 50);
+            run(mc, "tp @p 12.5 " + (f + 1.2) + " 18.5 20 7");
+            Ui.fov(mc, 55);
         });
-        pan(30, 30, -2, -2, 1);
+        pan(20, 20, 7, 7, 1);
         then(60, () -> startFilm(mc, "8-strong"));
         seconds(6, WindblownSelfTest::stopFilm);
         then(0, () -> {
-            run(mc, "tp @p 0.5 " + (f + 1) + " 14.5 0 6");
+            run(mc, "tp @p 0.5 " + (f + 1.3) + " 14.5 -10 10");
             Ui.fov(mc, 60);
         });
-        pan(0, 0, 6, 6, 1);
+        pan(-10, -10, 10, 10, 1);
         then(60, () -> startFilm(mc, "9-end"));
         seconds(8, WindblownSelfTest::stopFilm);
         then(0, () -> config.setStrength(1f));
