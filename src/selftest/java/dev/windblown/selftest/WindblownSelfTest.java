@@ -602,14 +602,23 @@ public final class WindblownSelfTest {
                     for (int[] c : cameras) {
                         near |= Math.abs(c[0] - x) <= 1 && Math.abs(c[1] - z) <= 1;
                     }
-                    int pick = Math.floorMod(x * 73 + z * 151 + x * z * 7, 100);
-                    boolean front = x >= 12 && x <= 34 && z >= -6 && z <= 5;
-                    if (front && pick < 60) {
+                    int hash = (x * 73856093) ^ (z * 19349663);
+                    hash ^= hash >>> 13;
+                    hash *= 0x5bd1e995;
+                    hash ^= hash >>> 15;
+                    double roll = Math.floorMod(hash, 1000) / 1000.0;
+                    double patch = 0.5 + 0.5 * Math.sin(x * 0.29 + 2 * Math.cos(z * 0.21)) * Math.sin(z * 0.25 + 1.3 + Math.cos(x * 0.17));
+                    double density = 0.1 + 0.45 * patch;
+                    if (x >= 12 && x <= 34 && z >= -6 && z <= 5) {
+                        density *= 0.4;
+                    }
+                    if (near || roll >= density) {
                         continue;
                     }
-                    if (near || front || pick < 40) {
+                    int pick = (int) (roll / density * 100);
+                    if (pick < 62) {
                         run(mc, "setblock " + x + " " + (top + 1) + " " + z + " minecraft:short_grass");
-                    } else if (pick < 92) {
+                    } else if (pick < 90) {
                         run(mc, "setblock " + x + " " + (top + 1) + " " + z + " minecraft:tall_grass[half=lower]");
                         run(mc, "setblock " + x + " " + (top + 2) + " " + z + " minecraft:tall_grass[half=upper]");
                     } else {
