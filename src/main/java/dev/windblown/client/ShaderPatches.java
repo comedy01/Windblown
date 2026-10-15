@@ -110,6 +110,9 @@ public final class ShaderPatches {
 
     private static String terrain(String name, String source) throws IOException {
         for (Terrain terrain : TERRAINS) {
+            if (terrain.sodium() && !source.contains("_vert_tex_light_coord")) {
+                continue;
+            }
             Matcher position = terrain.position().matcher(source);
             if (!position.find()) {
                 continue;

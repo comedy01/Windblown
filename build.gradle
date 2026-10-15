@@ -125,6 +125,12 @@ dependencies {
 	testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 }
 
+if (project.hasProperty("extramods")) {
+	dependencies {
+		add(remap ? "modRuntimeOnly" : "runtimeOnly", fileTree(project.property("extramods")) { include "*.jar" })
+	}
+}
+
 def sodiumVersion = versionProps.getProperty("sodium_version")
 if (sodiumVersion != null && (project.hasProperty("sodium") || project.hasProperty("iris"))) {
 	def plain = versionProps.getProperty("sodium_plain") == "true"
