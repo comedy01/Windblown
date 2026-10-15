@@ -1,0 +1,14 @@
+modLoader="javafml"
+loaderVersion="[1,)"
+license="MIT"
+
+[[mods]]
+modId="windblown_selftest"
+version="1.0.0"
+displayName="Windblown self test"
+
+[[mixins]]
+config="windblown_selftest.mixins.json"
+
+[[mixins]]
+config="windblown_selftest_neoforge.mixins.json"

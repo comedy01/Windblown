@@ -1,0 +1,19 @@
+{
+	"required": true,
+	"minVersion": "0.8",
+	"package": "dev.windblown.mixin",
+	"compatibilityLevel": "JAVA_${java_version}",
+	"client": [
+		"BlockStateBaseMixin",
+		"MinecraftTickMixin",
+		"sodium.GlProgramLegacyMixin",
+		"sodium.GlProgramMixin",
+		"sodium.GlobalUniformsMixin",
+		"sodium.ShaderLoaderLegacyMixin",
+		"sodium.ShaderLoaderMixin",
+		"sodium.UniformBufferManagerMixin"${pack_mixins}
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}
