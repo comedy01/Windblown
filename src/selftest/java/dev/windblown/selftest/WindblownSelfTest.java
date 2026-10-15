@@ -309,6 +309,10 @@ public final class WindblownSelfTest {
             perfScene(mc);
             return;
         }
+        if (System.getProperty("windblown.modded") != null) {
+            moddedScene(mc, System.getProperty("windblown.modded").split(","));
+            return;
+        }
         then(60, () -> {
             if (sodium) {
                 check(ShaderPatches.applied(ShaderPatches.SODIUM_TERRAIN), "Sodium's terrain shader was not patched");
@@ -568,6 +572,41 @@ public final class WindblownSelfTest {
             });
         }
         then(5, () -> hideHud = false);
+    }
+
+    private void moddedScene(Minecraft mc, String[] ids) {
+        WindblownConfig config = WindblownClient.config();
+        int f = ServerCompat.FLOOR;
+        then(5, () -> {
+            run(mc, "gamerule randomTickSpeed 0");
+            run(mc, "gamerule random_tick_speed 0");
+        });
+        for (String id : ids) {
+            then(5, () -> {
+                run(mc, "fill -16 " + f + " -4 16 " + (f + 10) + " 26 minecraft:air");
+                run(mc, "fill -10 " + f + " 2 10 " + f + " 14 " + id);
+            });
+            then(60, () -> {
+                BlockPos pos = new BlockPos(0, f, 3);
+                int info = Foliage.info(mc.level.getBlockState(pos));
+                log("modded " + id + ": " + mc.level.getBlockState(pos) + ", category " + Foliage.category(info)
+                        + " shape " + Foliage.shape(info));
+                config.setEnabled(true);
+                config.setStrength(3f);
+            });
+            motion(mc, id + " wind on");
+            then(1, () -> {
+                windMotion = motion();
+                config.setEnabled(false);
+            });
+            then(60, () -> {
+            });
+            motion(mc, id + " Windblown off");
+            then(1, () -> {
+                log(String.format(Locale.ROOT, "modded %s motion: wind %.3f, off %.3f", id, windMotion, motion()));
+                config.setEnabled(true);
+            });
+        }
     }
 
     private long until;
