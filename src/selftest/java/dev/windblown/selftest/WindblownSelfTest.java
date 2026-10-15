@@ -358,6 +358,44 @@ public final class WindblownSelfTest {
                         + ", category " + Foliage.category(info) + " shape " + Foliage.shape(info));
     }
 
+    private static int hill(int x, int z) {
+        if (pond(x, z)) {
+            return 3;
+        }
+        double amp = Math.min(1, 0.3 + Math.hypot(x - 2, z - 24) / 30);
+        double h = amp * (1.1 + Math.sin(x * 0.21) + 0.9 * Math.sin(z * 0.17 + 1) + 0.7 * Math.sin((x + z) * 0.09 + 2));
+        h += Math.max(0, z - 44) * 0.35 + Math.max(0, Math.abs(x) - 34) * 0.35 + Math.max(0, -z - 4) * 0.35;
+        h = Math.max(h, 3 - Math.max(0, Math.hypot(x + 22, z - 36) - 9) * 0.8);
+        double fx = Math.max(0, Math.max(14 - x, x - 32));
+        double fz = Math.max(0, Math.max(4 - z, z - 20));
+        h = Math.min(h, Math.hypot(fx, fz) * 0.7);
+        return (int) Math.max(0, Math.min(8, Math.round(h)));
+    }
+
+    private static boolean pond(int x, int z) {
+        return Math.hypot(x + 22, z - 36) <= 6.5;
+    }
+
+    private static boolean farm(int x, int z) {
+        return x >= 16 && x <= 30 && z >= 6 && z <= 18;
+    }
+
+    private void tree(Minecraft mc, int x, int z, int trunk) {
+        int b = ServerCompat.FLOOR + hill(x, z);
+        run(mc, "fill " + x + " " + b + " " + z + " " + x + " " + (b + trunk - 1) + " " + z + " minecraft:oak_log");
+        int[][] crown = {{trunk - 2, 5}, {trunk - 1, 5}, {trunk, 2}, {trunk + 1, 1}};
+        for (int[] layer : crown) {
+            for (int dx = -2; dx <= 2; dx++) {
+                for (int dz = -2; dz <= 2; dz++) {
+                    if (dx * dx + dz * dz <= layer[1]) {
+                        run(mc, "setblock " + (x + dx) + " " + (b + layer[0]) + " " + (z + dz)
+                                + " minecraft:oak_leaves[persistent=true] keep");
+                    }
+                }
+            }
+        }
+    }
+
     private int perfFrames;
     private long perfStart;
 
