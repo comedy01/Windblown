@@ -498,23 +498,28 @@ public final class WindblownSelfTest {
         int f = ServerCompat.FLOOR;
         then(10, () -> {
             run(mc, "fill -24 " + f + " 15 24 " + (f + 12) + " 40 minecraft:air");
-            run(mc, "fill -24 " + f + " 15 24 " + f + " 40 minecraft:short_grass");
-            for (int x = -22; x <= 22; x += 2) {
-                for (int z = 16; z <= 38; z += 2) {
-                    if (Math.floorMod(x * 31 + z * 17, 5) < 2) {
-                        run(mc, "setblock " + x + " " + f + " " + z + " minecraft:tall_grass[half=lower]");
-                        run(mc, "setblock " + x + " " + (f + 1) + " " + z + " minecraft:tall_grass[half=upper]");
+            run(mc, "fill -24 " + f + " 15 24 " + f + " 40 minecraft:tall_grass[half=lower]");
+            run(mc, "fill -24 " + (f + 1) + " 15 24 " + (f + 1) + " 40 minecraft:tall_grass[half=upper]");
+            for (int x = -24; x <= 24; x++) {
+                for (int z = 15; z <= 40; z++) {
+                    if (Math.floorMod(x * 7 + z * 13 + x * z, 9) < 3) {
+                        run(mc, "setblock " + x + " " + f + " " + z + " minecraft:short_grass");
                     }
                 }
             }
-            for (int i = 0; i < 4; i++) {
-                int x = -16 + i * 11;
-                int z = 30 + (i % 2) * 5;
-                run(mc, "fill " + x + " " + f + " " + z + " " + x + " " + (f + 4) + " " + z + " minecraft:birch_log");
-                run(mc, "fill " + (x - 2) + " " + (f + 3) + " " + (z - 2) + " " + (x + 2) + " " + (f + 5) + " " + (z + 2)
-                        + " minecraft:birch_leaves[persistent=true] keep");
-                run(mc, "fill " + (x - 1) + " " + (f + 6) + " " + (z - 1) + " " + (x + 1) + " " + (f + 6) + " " + (z + 1)
-                        + " minecraft:birch_leaves[persistent=true] keep");
+            for (int y = 0; y <= 5; y++) {
+                run(mc, "setblock 8 " + (f + y) + " 30 minecraft:oak_log");
+            }
+            int[][] crown = {{3, 4}, {4, 8}, {5, 8}, {6, 5}, {7, 1}};
+            for (int[] layer : crown) {
+                for (int dx = -3; dx <= 3; dx++) {
+                    for (int dz = -3; dz <= 3; dz++) {
+                        if (dx * dx + dz * dz <= layer[1]) {
+                            run(mc, "setblock " + (8 + dx) + " " + (f + layer[0]) + " " + (30 + dz)
+                                    + " minecraft:oak_leaves[persistent=true] keep");
+                        }
+                    }
+                }
             }
             String[] flowers = {"poppy", "dandelion", "cornflower", "oxeye_daisy", "azure_bluet"};
             for (int i = 0; i < 40; i++) {
@@ -529,9 +534,6 @@ public final class WindblownSelfTest {
             run(mc, "fill 50 " + f + " 15 70 " + f + " 35 minecraft:wheat[age=7]");
             run(mc, "fill 60 " + (f - 1) + " 15 60 " + (f - 1) + " 35 minecraft:water");
             run(mc, "fill 60 " + f + " 15 60 " + f + " 35 minecraft:air");
-            run(mc, "fill 56 " + f + " 44 64 " + (f + 8) + " 50 minecraft:air");
-            run(mc, "fill 60 " + f + " 47 60 " + (f + 4) + " 47 minecraft:oak_log");
-            run(mc, "fill 56 " + (f + 3) + " 44 64 " + (f + 7) + " 50 minecraft:oak_leaves[persistent=true] keep");
             run(mc, "fill 79 " + (f - 1) + " 14 101 " + (f + 9) + " 36 minecraft:glass hollow");
             run(mc, "fill 80 " + (f - 1) + " 15 100 " + (f - 1) + " 35 minecraft:sand");
             run(mc, "fill 80 " + f + " 15 100 " + (f + 8) + " 35 minecraft:water");
@@ -553,28 +555,26 @@ public final class WindblownSelfTest {
         pan(0, 0, 14, 14, 1);
         then(60, () -> startFilm(mc, "1-breeze"));
         seconds(10, WindblownSelfTest::stopFilm);
-        pan(-30, 30, 16, 10, 9);
-        then(0, () -> startFilm(mc, "2-pan"));
+        then(0, () -> run(mc, "tp @p 0.5 " + (f + 6) + " 8.5 0 26"));
+        pan(0, 0, 26, 26, 1);
+        then(60, () -> startFilm(mc, "2-pan"));
         seconds(9, WindblownSelfTest::stopFilm);
+        then(0, () -> run(mc, "tp @p 0.5 " + (f + 1) + " 12.5 0 14"));
         pan(0, 0, 14, 14, 1);
         then(0, () -> run(mc, "weather thunder"));
         within(800, () -> WindState.weather() > 2.2f, () -> startFilm(mc, "3-storm"));
         seconds(9, WindblownSelfTest::stopFilm);
         then(0, () -> run(mc, "weather clear"));
-        within(800, () -> WindState.weather() < 1.1f, () -> config.setEnabled(false));
-        then(60, () -> startFilm(mc, "4-off"));
-        seconds(4, WindblownSelfTest::stopFilm);
-        then(0, () -> config.setEnabled(true));
-        then(0, () -> run(mc, "tp @p 60.5 " + (f + 1) + " 10.5 0 18"));
-        pan(-12, 12, 18, 14, 8);
+        within(800, () -> WindState.weather() < 1.1f, () -> run(mc, "tp @p 55.5 " + (f + 0.4) + " 12.5 0 28"));
+        pan(0, 0, 28, 28, 1);
         then(60, () -> startFilm(mc, "5-wheat"));
         seconds(6, WindblownSelfTest::stopFilm);
-        then(0, () -> run(mc, "tp @p 60.5 " + (f + 3) + " 40.5 0 -8"));
-        pan(-8, 8, -8, -4, 8);
+        then(0, () -> run(mc, "tp @p 1.5 " + (f + 1) + " 22.5 -41 -10"));
+        pan(-41, -41, -10, -10, 1);
         then(60, () -> startFilm(mc, "6-leaves"));
         seconds(6, WindblownSelfTest::stopFilm);
         then(0, () -> run(mc, "tp @p 90.5 " + (f + 3) + " 16.5 0 10"));
-        pan(-10, 10, 12, 8, 8);
+        pan(0, 0, 10, 10, 1);
         then(60, () -> startFilm(mc, "7-kelp"));
         seconds(6, WindblownSelfTest::stopFilm);
         then(0, () -> run(mc, "tp @p 0.5 " + (f + 1) + " 12.5 0 14"));
@@ -583,8 +583,8 @@ public final class WindblownSelfTest {
         then(20, () -> startFilm(mc, "8-strong"));
         seconds(6, WindblownSelfTest::stopFilm);
         then(0, () -> config.setStrength(1f));
-        then(0, () -> run(mc, "tp @p 0.5 " + (f + 4) + " 8.5 0 18"));
-        pan(-6, 6, 18, 18, 10);
+        then(0, () -> run(mc, "tp @p 0.5 " + (f + 3) + " 9.5 0 12"));
+        pan(0, 0, 12, 12, 1);
         then(60, () -> startFilm(mc, "9-end"));
         seconds(8, WindblownSelfTest::stopFilm);
         then(0, () -> run(mc, "gamemode creative @p"));
