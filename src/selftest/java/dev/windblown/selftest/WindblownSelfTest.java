@@ -493,124 +493,162 @@ public final class WindblownSelfTest {
                         + ", category " + Foliage.category(info) + " shape " + Foliage.shape(info));
     }
 
+    private static int hill(int x, int z) {
+        if (pond(x, z)) {
+            return 3;
+        }
+        double amp = Math.min(1, 0.3 + Math.hypot(x - 2, z - 24) / 30);
+        double h = amp * (1.1 + Math.sin(x * 0.21) + 0.9 * Math.sin(z * 0.17 + 1) + 0.7 * Math.sin((x + z) * 0.09 + 2));
+        h += Math.max(0, z - 44) * 0.35 + Math.max(0, Math.abs(x) - 34) * 0.35 + Math.max(0, -z - 4) * 0.35;
+        h = Math.max(h, 3 - Math.max(0, Math.hypot(x + 22, z - 36) - 9) * 0.8);
+        double fx = Math.max(0, Math.max(14 - x, x - 32));
+        double fz = Math.max(0, Math.max(4 - z, z - 20));
+        h = Math.min(h, Math.hypot(fx, fz) * 0.7);
+        return (int) Math.max(0, Math.min(8, Math.round(h)));
+    }
+
+    private static boolean pond(int x, int z) {
+        return Math.hypot(x + 22, z - 36) <= 6.5;
+    }
+
+    private static boolean farm(int x, int z) {
+        return x >= 16 && x <= 30 && z >= 6 && z <= 18;
+    }
+
+    private void tree(Minecraft mc, int x, int z, int trunk) {
+        int b = ServerCompat.FLOOR + hill(x, z);
+        run(mc, "fill " + x + " " + b + " " + z + " " + x + " " + (b + trunk - 1) + " " + z + " minecraft:oak_log");
+        int[][] crown = {{trunk - 2, 5}, {trunk - 1, 5}, {trunk, 2}, {trunk + 1, 1}};
+        for (int[] layer : crown) {
+            for (int dx = -2; dx <= 2; dx++) {
+                for (int dz = -2; dz <= 2; dz++) {
+                    if (dx * dx + dz * dz <= layer[1]) {
+                        run(mc, "setblock " + (x + dx) + " " + (b + layer[0]) + " " + (z + dz)
+                                + " minecraft:oak_leaves[persistent=true] keep");
+                    }
+                }
+            }
+        }
+    }
+
+    private void aim(Minecraft mc, double x, double eye, double z, double tx, double ty, double tz, int fov) {
+        float yaw = (float) Math.toDegrees(Math.atan2(-(tx - x), tz - z));
+        float pitch = (float) -Math.toDegrees(Math.atan2(ty - eye, Math.hypot(tx - x, tz - z)));
+        then(0, () -> {
+            run(mc, String.format(Locale.ROOT, "tp @p %.2f %.2f %.2f %.1f %.1f", x, eye - 1.62, z, yaw, pitch));
+            Ui.fov(mc, fov);
+        });
+        pan(yaw, yaw, pitch, pitch, 1);
+    }
+
+    private void shot(Minecraft mc, String name, double length, int x, int z, double lift,
+                      double tx, double ty, double tz, int fov) {
+        aim(mc, x + 0.5, ServerCompat.FLOOR + hill(x, z) + lift, z + 0.5, tx, ty, tz, fov);
+        then(100, () -> startFilm(mc, name));
+        seconds(length, WindblownSelfTest::stopFilm);
+    }
+
     private void filmScene(Minecraft mc) {
         WindblownConfig config = WindblownClient.config();
         int f = ServerCompat.FLOOR;
+        String[] flowers = {"poppy", "dandelion", "cornflower", "oxeye_daisy", "azure_bluet", "allium"};
+        int[][] cameras = {{-1, 12}, {-16, 14}, {14, 10}, {-10, 22}, {0, 2}, {2, 21}, {23, 2}};
         then(10, () -> {
             run(mc, "kill @e[type=!player]");
-            run(mc, "fill -30 " + (f - 1) + " 4 30 " + (f - 1) + " 44 minecraft:grass_block");
-            run(mc, "fill -30 " + f + " 4 30 " + (f + 12) + " 44 minecraft:air");
-            run(mc, "fill -30 " + f + " 4 30 " + f + " 44 minecraft:tall_grass[half=lower]");
-            run(mc, "fill -30 " + (f + 1) + " 4 30 " + (f + 1) + " 44 minecraft:tall_grass[half=upper]");
-            for (int x = -30; x <= 30; x++) {
-                for (int z = 4; z <= 44; z++) {
-                    if (Math.floorMod(x * 7 + z * 13 + x * z, 9) < 3) {
-                        run(mc, "setblock " + x + " " + f + " " + z + " minecraft:short_grass");
-                    }
-                }
-            }
-            for (int y = 0; y <= 5; y++) {
-                run(mc, "setblock 8 " + (f + y) + " 30 minecraft:oak_log");
-            }
-            int[][] crown = {{3, 4}, {4, 8}, {5, 8}, {6, 5}, {7, 1}};
-            for (int[] layer : crown) {
-                for (int dx = -3; dx <= 3; dx++) {
-                    for (int dz = -3; dz <= 3; dz++) {
-                        if (dx * dx + dz * dz <= layer[1]) {
-                            run(mc, "setblock " + (8 + dx) + " " + (f + layer[0]) + " " + (30 + dz)
-                                    + " minecraft:oak_leaves[persistent=true] keep");
+            run(mc, "gamerule randomTickSpeed 0");
+            run(mc, "gamerule random_tick_speed 0");
+            run(mc, "weather clear");
+        });
+        for (int row = -48; row <= 48; row++) {
+            int x = row;
+            then(1, () -> {
+                run(mc, "fill " + x + " " + f + " -12 " + x + " " + (f + 16) + " 64 minecraft:air");
+                run(mc, "fill " + x + " " + (f - 3) + " -12 " + x + " " + (f - 2) + " 64 minecraft:dirt");
+                run(mc, "fill " + x + " " + (f - 1) + " -12 " + x + " " + (f - 1) + " 64 minecraft:grass_block");
+                for (int z = -12; z <= 64; z++) {
+                    int h = hill(x, z);
+                    int top = f - 1 + h;
+                    if (pond(x, z)) {
+                        double r = Math.hypot(x + 22, z - 36);
+                        int bottom = r > 5 ? f : f - 2;
+                        run(mc, "fill " + x + " " + (f - 3) + " " + z + " " + x + " " + (bottom - 1) + " " + z + " minecraft:sand");
+                        run(mc, "fill " + x + " " + bottom + " " + z + " " + x + " " + top + " " + z + " minecraft:water");
+                        int k = Math.floorMod(x * 31 + z * 17, 10);
+                        if (r <= 3.5 && z >= 35 && k < 5) {
+                            int tall = 3 + k % 3;
+                            run(mc, "fill " + x + " " + bottom + " " + z + " " + x + " " + (bottom + tall - 2) + " " + z + " minecraft:kelp_plant");
+                            run(mc, "setblock " + x + " " + (bottom + tall - 1) + " " + z + " minecraft:kelp");
+                        } else if (k < 8) {
+                            run(mc, "setblock " + x + " " + bottom + " " + z + " minecraft:seagrass");
                         }
+                        continue;
+                    }
+                    if (h > 0) {
+                        run(mc, "fill " + x + " " + f + " " + z + " " + x + " " + top + " " + z + " minecraft:grass_block");
+                    }
+                    if (farm(x, z)) {
+                        if (x == 23) {
+                            run(mc, "setblock " + x + " " + top + " " + z + " minecraft:water");
+                            continue;
+                        }
+                        int lane = x - 16;
+                        String crop = lane < 4 ? "wheat[age=7]" : lane < 7 ? "carrots[age=7]"
+                                : lane < 11 ? "potatoes[age=7]" : "beetroots[age=3]";
+                        run(mc, "setblock " + x + " " + top + " " + z + " minecraft:farmland[moisture=7]");
+                        run(mc, "setblock " + x + " " + (top + 1) + " " + z + " minecraft:" + crop);
+                        continue;
+                    }
+                    boolean near = false;
+                    for (int[] c : cameras) {
+                        near |= Math.abs(c[0] - x) <= 1 && Math.abs(c[1] - z) <= 1;
+                    }
+                    int pick = Math.floorMod(x * 73 + z * 151 + x * z * 7, 100);
+                    boolean front = x >= 12 && x <= 34 && z >= -6 && z <= 5;
+                    if (front && pick < 60) {
+                        continue;
+                    }
+                    if (near || front || pick < 40) {
+                        run(mc, "setblock " + x + " " + (top + 1) + " " + z + " minecraft:short_grass");
+                    } else if (pick < 92) {
+                        run(mc, "setblock " + x + " " + (top + 1) + " " + z + " minecraft:tall_grass[half=lower]");
+                        run(mc, "setblock " + x + " " + (top + 2) + " " + z + " minecraft:tall_grass[half=upper]");
+                    } else {
+                        run(mc, "setblock " + x + " " + (top + 1) + " " + z + " minecraft:" + flowers[pick % flowers.length]);
                     }
                 }
-            }
-            String[] flowers = {"poppy", "dandelion", "cornflower", "oxeye_daisy", "azure_bluet"};
-            for (int i = 0; i < 40; i++) {
-                int x = -22 + (i * 13) % 45;
-                int z = 12 + (i * 7) % 26;
-                run(mc, "setblock " + x + " " + f + " " + z + " minecraft:" + flowers[i % flowers.length]);
-            }
-            for (int[] c : new int[][]{{3, 19}, {12, 18}, {-7, 14}, {0, 14}}) {
-                run(mc, "fill " + (c[0] - 2) + " " + f + " " + (c[1] - 2) + " " + (c[0] + 2) + " " + (f + 1) + " "
-                        + (c[1] + 2) + " minecraft:air");
-            }
-        });
-        then(10, () -> {
-            run(mc, "fill 50 " + (f - 1) + " 15 70 " + (f - 1) + " 35 minecraft:farmland[moisture=7]");
-            run(mc, "fill 50 " + f + " 15 70 " + (f + 4) + " 35 minecraft:air");
-            run(mc, "fill 50 " + f + " 15 70 " + f + " 35 minecraft:wheat[age=7]");
-            run(mc, "fill 60 " + (f - 1) + " 15 60 " + (f - 1) + " 35 minecraft:water");
-            run(mc, "fill 60 " + f + " 15 60 " + f + " 35 minecraft:air");
-            run(mc, "fill 79 " + (f - 1) + " 14 101 " + (f + 9) + " 36 minecraft:glass hollow");
-            run(mc, "fill 80 " + (f - 1) + " 15 100 " + (f - 1) + " 35 minecraft:sand");
-            run(mc, "fill 80 " + f + " 15 100 " + (f + 8) + " 35 minecraft:water");
-            for (int x = 81; x <= 99; x += 2) {
-                for (int z = 19; z <= 34; z += 3) {
-                    int h = 3 + Math.floorMod(x * 13 + z * 7, 5);
-                    int px = x + Math.floorMod(z, 2);
-                    run(mc, "fill " + px + " " + f + " " + z + " " + px + " " + (f + h - 1) + " " + z + " minecraft:kelp_plant");
-                    run(mc, "setblock " + px + " " + (f + h) + " " + z + " minecraft:kelp");
-                    run(mc, "setblock " + (px + 1) + " " + f + " " + (z + 1) + " minecraft:seagrass");
-                }
-            }
-        });
-        then(80, () -> {
+            });
+        }
+        then(5, () -> {
+            tree(mc, 6, 26, 5);
+            tree(mc, -32, 50, 4);
+            tree(mc, 27, 52, 5);
+            tree(mc, 41, 32, 4);
+            tree(mc, -41, 16, 5);
+            tree(mc, -30, 4, 4);
             run(mc, "kill @e[type=item]");
             run(mc, "gamemode spectator @p");
-            run(mc, "tp @p 3.5 " + (f + 1.2) + " 19.5 -25 6");
-            Ui.fov(mc, 55);
-            config.setStrength(3f);
+            run(mc, "time set 1000");
         });
-        pan(-25, -25, 6, 6, 1);
-        then(60, () -> startFilm(mc, "1-breeze"));
-        seconds(10, WindblownSelfTest::stopFilm);
-        then(0, () -> {
-            run(mc, "tp @p -6.5 " + (f + 1.3) + " 14.5 -15 14");
-            Ui.fov(mc, 55);
+        double ty = f + hill(6, 26) + 3.5;
+        then(400, () -> {
         });
-        pan(-15, -15, 14, 14, 1);
-        then(60, () -> startFilm(mc, "2-pan"));
-        seconds(9, WindblownSelfTest::stopFilm);
-        then(0, () -> {
-            run(mc, "tp @p 3.5 " + (f + 1.2) + " 19.5 -25 6");
-            Ui.fov(mc, 55);
-        });
-        pan(-25, -25, 6, 6, 1);
+        shot(mc, "1-breeze", 8, -1, 12, 2.8, 6.5, ty, 26.5, 60);
+        shot(mc, "2-pan", 8, -16, 14, 2.9, 8, f + 1, 40, 60);
+        shot(mc, "6-leaves", 7, 2, 21, 2.8, 6.5, ty + 0.5, 26.5, 70);
+        shot(mc, "5-wheat", 7, 23, 2, 2.6, 23.5, f + 0.3, 11, 60);
+        shot(mc, "7-kelp", 7, -22, 30, -1.4, -21.5, f - 1, 37, 70);
+        shot(mc, "9-end", 10, 0, 2, 2.8, 6.5, ty + 1, 26.5, 55);
+        aim(mc, 14.5, f + hill(14, 10) + 2.8, 10.5, 6.5, ty, 26.5, 60);
         then(0, () -> run(mc, "weather thunder"));
         within(800, () -> WindState.weather() > 2.2f, () -> startFilm(mc, "3-storm"));
-        seconds(9, WindblownSelfTest::stopFilm);
-        then(0, () -> run(mc, "weather clear"));
-        within(800, () -> WindState.weather() < 1.1f, () -> run(mc, "tp @p 55.5 " + (f + 0.4) + " 13.8 0 30"));
-        pan(0, 0, 30, 30, 1);
-        then(60, () -> startFilm(mc, "5-wheat"));
-        seconds(6, WindblownSelfTest::stopFilm);
-        then(0, () -> {
-            run(mc, "tp @p 4.5 " + (f + 1.6) + " 26.5 -22 -32");
-            Ui.fov(mc, 70);
-        });
-        pan(-22, -22, -32, -32, 1);
-        then(60, () -> startFilm(mc, "6-leaves"));
-        seconds(6, WindblownSelfTest::stopFilm);
-        then(0, () -> {
-            run(mc, "tp @p 90.5 " + (f + 3) + " 17.5 0 10");
-            Ui.fov(mc, 60);
-        });
-        pan(0, 0, 10, 10, 1);
-        then(60, () -> startFilm(mc, "7-kelp"));
-        seconds(6, WindblownSelfTest::stopFilm);
-        then(0, () -> {
-            run(mc, "tp @p 12.5 " + (f + 1.2) + " 18.5 20 7");
-            Ui.fov(mc, 55);
-        });
-        pan(20, 20, 7, 7, 1);
-        then(60, () -> startFilm(mc, "8-strong"));
-        seconds(6, WindblownSelfTest::stopFilm);
-        then(0, () -> {
-            run(mc, "tp @p 0.5 " + (f + 1.3) + " 14.5 -10 10");
-            Ui.fov(mc, 60);
-        });
-        pan(-10, -10, 10, 10, 1);
-        then(60, () -> startFilm(mc, "9-end"));
         seconds(8, WindblownSelfTest::stopFilm);
+        then(0, () -> {
+            run(mc, "weather clear");
+            config.setStrength(1.6f);
+        });
+        within(800, () -> WindState.weather() < 1.05f, () -> {
+        });
+        shot(mc, "8-strong", 7, -10, 22, 2.8, 6.5, ty, 26.5, 60);
         then(0, () -> config.setStrength(1f));
         then(0, () -> run(mc, "gamemode creative @p"));
         still();
