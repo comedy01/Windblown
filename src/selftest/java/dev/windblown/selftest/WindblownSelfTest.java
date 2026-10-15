@@ -120,7 +120,7 @@ public final class WindblownSelfTest {
 
     private static final class Film {
         final String name;
-        final java.util.concurrent.BlockingQueue<Object[]> queue = new java.util.concurrent.ArrayBlockingQueue<>(6);
+        final java.util.concurrent.BlockingQueue<Object[]> queue = new java.util.concurrent.ArrayBlockingQueue<>(20);
         final Thread writer;
         final long start = System.nanoTime();
         Process process;
@@ -155,7 +155,7 @@ public final class WindblownSelfTest {
             if (process == null) {
                 process = new ProcessBuilder(System.getProperty("windblown.ffmpeg"), "-y", "-loglevel", "error",
                         "-f", "rawvideo", "-pix_fmt", "rgba", "-s", width + "x" + height, "-r", "30", "-i", "-",
-                        "-c:v", "libx264", "-crf", "16", "-preset", "fast", "-pix_fmt", "yuv420p", out.getPath())
+                        "-c:v", "libx264", "-crf", "14", "-preset", "ultrafast", "-pix_fmt", "yuv420p", out.getPath())
                         .redirectErrorStream(true).redirectOutput(ProcessBuilder.Redirect.DISCARD).start();
             }
             for (int i = 0; i < copies; i++) {
@@ -639,8 +639,17 @@ public final class WindblownSelfTest {
             run(mc, "time set 1000");
         });
         double ty = f + hill(6, 26) + 3.5;
-        then(400, () -> {
+        then(200, () -> {
         });
+        aim(mc, -15.5, f + hill(-16, 14) + 2.9, 14.5, 8, f + 1, 40, 60);
+        then(200, System::gc);
+        aim(mc, -0.5, f + hill(-1, 12) + 2.8, 12.5, 6.5, ty, 26.5, 60);
+        then(200, System::gc);
+        aim(mc, -21.5, f + hill(-22, 30) - 1.4, 30.5, -21.5, f - 1, 37, 70);
+        then(200, System::gc);
+        aim(mc, 14.5, f + hill(14, 10) + 2.8, 10.5, 6.5, ty, 26.5, 60);
+        then(150, System::gc);
+        shot(mc, "0-warm", 4, -1, 12, 2.8, 6.5, ty, 26.5, 60);
         shot(mc, "1-breeze", 8, -1, 12, 2.8, 6.5, ty, 26.5, 60);
         shot(mc, "2-pan", 8, -16, 14, 2.9, 8, f + 1, 40, 60);
         shot(mc, "6-leaves", 7, 2, 21, 2.8, 6.5, ty + 0.5, 26.5, 70);
