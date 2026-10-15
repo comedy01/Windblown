@@ -523,7 +523,30 @@ public final class WindblownSelfTest {
                 run(mc, "setblock " + x + " " + f + " " + z + " minecraft:" + flowers[i % flowers.length]);
             }
         });
+        then(10, () -> {
+            run(mc, "fill 50 " + (f - 1) + " 15 70 " + (f - 1) + " 35 minecraft:farmland[moisture=7]");
+            run(mc, "fill 50 " + f + " 15 70 " + (f + 4) + " 35 minecraft:air");
+            run(mc, "fill 50 " + f + " 15 70 " + f + " 35 minecraft:wheat[age=7]");
+            run(mc, "fill 60 " + (f - 1) + " 15 60 " + (f - 1) + " 35 minecraft:water");
+            run(mc, "fill 60 " + f + " 15 60 " + f + " 35 minecraft:air");
+            run(mc, "fill 56 " + f + " 44 64 " + (f + 8) + " 50 minecraft:air");
+            run(mc, "fill 60 " + f + " 47 60 " + (f + 4) + " 47 minecraft:oak_log");
+            run(mc, "fill 56 " + (f + 3) + " 44 64 " + (f + 7) + " 50 minecraft:oak_leaves[persistent=true] keep");
+            run(mc, "fill 79 " + (f - 1) + " 14 101 " + (f + 9) + " 36 minecraft:glass hollow");
+            run(mc, "fill 80 " + (f - 1) + " 15 100 " + (f - 1) + " 35 minecraft:sand");
+            run(mc, "fill 80 " + f + " 15 100 " + (f + 8) + " 35 minecraft:water");
+            for (int x = 81; x <= 99; x += 2) {
+                for (int z = 19; z <= 34; z += 3) {
+                    int h = 3 + Math.floorMod(x * 13 + z * 7, 5);
+                    int px = x + Math.floorMod(z, 2);
+                    run(mc, "fill " + px + " " + f + " " + z + " " + px + " " + (f + h - 1) + " " + z + " minecraft:kelp_plant");
+                    run(mc, "setblock " + px + " " + (f + h) + " " + z + " minecraft:kelp");
+                    run(mc, "setblock " + (px + 1) + " " + f + " " + (z + 1) + " minecraft:seagrass");
+                }
+            }
+        });
         then(80, () -> {
+            run(mc, "gamemode spectator @p");
             run(mc, "tp @p 0.5 " + (f + 1) + " 12.5 0 14");
             Ui.fov(mc, 70);
         });
@@ -542,6 +565,29 @@ public final class WindblownSelfTest {
         then(60, () -> startFilm(mc, "4-off"));
         seconds(4, WindblownSelfTest::stopFilm);
         then(0, () -> config.setEnabled(true));
+        then(0, () -> run(mc, "tp @p 60.5 " + (f + 1) + " 10.5 0 18"));
+        pan(-12, 12, 18, 14, 8);
+        then(60, () -> startFilm(mc, "5-wheat"));
+        seconds(6, WindblownSelfTest::stopFilm);
+        then(0, () -> run(mc, "tp @p 60.5 " + (f + 3) + " 40.5 0 -8"));
+        pan(-8, 8, -8, -4, 8);
+        then(60, () -> startFilm(mc, "6-leaves"));
+        seconds(6, WindblownSelfTest::stopFilm);
+        then(0, () -> run(mc, "tp @p 90.5 " + (f + 3) + " 16.5 0 10"));
+        pan(-10, 10, 12, 8, 8);
+        then(60, () -> startFilm(mc, "7-kelp"));
+        seconds(6, WindblownSelfTest::stopFilm);
+        then(0, () -> run(mc, "tp @p 0.5 " + (f + 1) + " 12.5 0 14"));
+        pan(0, 0, 14, 14, 1);
+        then(60, () -> config.setStrength(3f));
+        then(20, () -> startFilm(mc, "8-strong"));
+        seconds(6, WindblownSelfTest::stopFilm);
+        then(0, () -> config.setStrength(1f));
+        then(0, () -> run(mc, "tp @p 0.5 " + (f + 4) + " 8.5 0 18"));
+        pan(-6, 6, 18, 18, 10);
+        then(60, () -> startFilm(mc, "9-end"));
+        seconds(8, WindblownSelfTest::stopFilm);
+        then(0, () -> run(mc, "gamemode creative @p"));
         still();
         then(5, () -> hideHud = false);
     }
