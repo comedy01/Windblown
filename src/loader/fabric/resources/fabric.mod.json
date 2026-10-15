@@ -1,0 +1,41 @@
+{
+	"schemaVersion": 1,
+	"id": "windblown",
+	"version": "${version}",
+	"name": "Windblown",
+	"description": "Plants sway in the wind. Grass, flowers, crops, leaves and vines move in gusts that sweep across the land, harder in storms, and rustle when you walk through them. No shaders needed, works with Sodium. Client-side only.",
+	"icon": {
+		"16": "assets/windblown/icon16.png",
+		"32": "assets/windblown/icon32.png",
+		"128": "assets/windblown/icon128.png"
+	},
+	"authors": [
+		"comedy01"
+	],
+	"license": "MIT",
+	"contact": {
+		"homepage": "https://github.com/comedy01/Windblown",
+		"sources": "https://github.com/comedy01/Windblown",
+		"issues": "https://github.com/comedy01/Windblown/issues"
+	},
+	"environment": "client",
+	"entrypoints": {
+		"client": [
+			"dev.windblown.fabric.WindblownFabric"
+		],
+		"modmenu": [
+			"dev.windblown.fabric.WindblownModMenu"
+		]
+	},
+	"mixins": [
+		"windblown.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.15.0",
+		"minecraft": "${range}",
+		"java": ">=${java_version}"
+	},
+	"suggests": {
+		"modmenu": "*"
+	}
+}

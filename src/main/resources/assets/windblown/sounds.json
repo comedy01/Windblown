@@ -1,0 +1,74 @@
+{
+	"rustle.grass": {
+		"sounds": [
+			{
+				"name": "windblown:rustle/grass1",
+				"attenuation_distance": 16
+			},
+			{
+				"name": "windblown:rustle/grass2",
+				"attenuation_distance": 16
+			},
+			{
+				"name": "windblown:rustle/grass3",
+				"attenuation_distance": 16
+			},
+			{
+				"name": "windblown:rustle/grass4",
+				"attenuation_distance": 16
+			},
+			{
+				"name": "windblown:rustle/grass5",
+				"attenuation_distance": 16
+			},
+			{
+				"name": "windblown:rustle/grass6",
+				"attenuation_distance": 16
+			}
+		]
+	},
+	"rustle.leaves": {
+		"sounds": [
+			{
+				"name": "windblown:rustle/leaves1",
+				"attenuation_distance": 16
+			},
+			{
+				"name": "windblown:rustle/leaves2",
+				"attenuation_distance": 16
+			},
+			{
+				"name": "windblown:rustle/leaves3",
+				"attenuation_distance": 16
+			},
+			{
+				"name": "windblown:rustle/leaves4",
+				"attenuation_distance": 16
+			},
+			{
+				"name": "windblown:rustle/leaves5",
+				"attenuation_distance": 16
+			}
+		]
+	},
+	"rustle.crops": {
+		"sounds": [
+			{
+				"name": "windblown:rustle/crops1",
+				"attenuation_distance": 16
+			},
+			{
+				"name": "windblown:rustle/crops2",
+				"attenuation_distance": 16
+			},
+			{
+				"name": "windblown:rustle/crops3",
+				"attenuation_distance": 16
+			},
+			{
+				"name": "windblown:rustle/crops4",
+				"attenuation_distance": 16
+			}
+		]
+	}
+}
