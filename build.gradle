@@ -103,14 +103,14 @@ dependencies {
 		minecraft "com.mojang:minecraft:${gameVersion}"
 		mappings loom.officialMojangMappings()
 		modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-		modImplementation "net.fabricmc.fabric-api:fabric-api:${versionProps.getProperty('fabric_api_version')}"
+		modImplementation "net.fabricmc.fabric-api:fabric-api:${project.findProperty('fabricapi') ?: versionProps.getProperty('fabric_api_version')}"
 		modCompileOnly("com.terraformersmc:modmenu:${versionProps.getProperty('modmenu_version')}") {
 			transitive = false
 		}
 	} else if (fabric) {
 		minecraft "com.mojang:minecraft:${gameVersion}"
 		implementation "net.fabricmc:fabric-loader:${project.loader_version}"
-		implementation "net.fabricmc.fabric-api:fabric-api:${versionProps.getProperty('fabric_api_version')}"
+		implementation "net.fabricmc.fabric-api:fabric-api:${project.findProperty('fabricapi') ?: versionProps.getProperty('fabric_api_version')}"
 		compileOnly("com.terraformersmc:modmenu:${versionProps.getProperty('modmenu_version')}") {
 			transitive = false
 		}
