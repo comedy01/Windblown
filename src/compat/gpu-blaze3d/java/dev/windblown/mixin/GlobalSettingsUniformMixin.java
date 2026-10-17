@@ -29,7 +29,7 @@ abstract class GlobalSettingsUniformMixin {
     @WrapOperation(method = "<init>", at = @At(value = "INVOKE",
             target = "Lcom/mojang/blaze3d/systems/GpuDevice;createBuffer(Ljava/util/function/Supplier;IJ)Lcom/mojang/blaze3d/buffers/GpuBuffer;"))
     private GpuBuffer windblown$size(GpuDevice device, Supplier<String> label, int usage, long size, Operation<GpuBuffer> original) {
-        return original.call(device, label, usage, Math.max(size, offset() + WindFrame.BYTES));
+        return original.call(device, label, usage, Math.max(size, windblown$offset() + WindFrame.BYTES));
     }
 
     @Inject(method = "update", at = @At("TAIL"))
@@ -40,13 +40,13 @@ abstract class GlobalSettingsUniformMixin {
                 return;
             }
             RenderSystem.getDevice().createCommandEncoder()
-                    .writeToBuffer(buffer.slice(offset(), WindFrame.BYTES), WindFrame.bytes());
+                    .writeToBuffer(buffer.slice(windblown$offset(), WindFrame.BYTES), WindFrame.bytes());
         } catch (RuntimeException e) {
             WindblownClient.fail(e);
         }
     }
 
-    private static int offset() {
+    private static int windblown$offset() {
         return ((GlobalSettingsUniform.UBO_SIZE + 15) & ~15) + WindFrame.FIRELIGHT_BYTES;
     }
 }
