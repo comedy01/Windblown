@@ -23,9 +23,11 @@ public final class WindblownConfig {
     public static final int MIN_STRENGTH_PERCENT = 10;
     public static final int MAX_STRENGTH_PERCENT = 300;
     public static final int MAX_VOLUME_PERCENT = 200;
+    public static final int MAX_GUSTS_PERCENT = 100;
 
     private boolean enabled = true;
     private float strength = 1.0f;
+    private float gusts = 1.0f;
     private boolean grass = true;
     private boolean crops = true;
     private boolean leaves = true;
@@ -49,6 +51,14 @@ public final class WindblownConfig {
 
     public void setStrength(float value) {
         strength = value;
+    }
+
+    public float gusts() {
+        return clamp(gusts, 0f, MAX_GUSTS_PERCENT / 100f);
+    }
+
+    public void setGusts(float value) {
+        gusts = value;
     }
 
     public float rustleVolume() {
@@ -119,6 +129,7 @@ public final class WindblownConfig {
         WindblownConfig fresh = new WindblownConfig();
         enabled = fresh.enabled;
         strength = fresh.strength;
+        gusts = fresh.gusts;
         grass = fresh.grass;
         crops = fresh.crops;
         leaves = fresh.leaves;

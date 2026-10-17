@@ -44,7 +44,7 @@ vec3 windblown_offset(vec3 pos, float a, float sky) {
         return vec3(0.0);
     }
     float front = sin(along * 0.09 - t * 1.25 + sin(across * 0.06 + t * 0.15) * 2.2);
-    float gust = mix(0.35, 1.0, smoothstep(-0.2, 0.9, front) * (0.55 + 0.45 * WindblownWind.z));
+    float gust = mix(0.65, mix(0.35, 1.0, smoothstep(-0.2, 0.9, front) * (0.55 + 0.45 * WindblownWind.z)), WindblownWind.w);
     float wave = sin(t * 2.1 - along * 0.55 + across * 0.17) * 0.6
             + sin(t * 3.4 + world.x * 0.83 + world.z * 0.61) * 0.28
             + sin(t * 5.7 + world.x * 1.9 - world.z * 1.3) * 0.12;

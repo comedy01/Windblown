@@ -4,6 +4,8 @@
   "windblown.options.enabled.tooltip": "Grass, flowers, crops, leaves and vines sway in the wind, and plants rustle when you walk through them.",
   "windblown.options.strength": "Wind Strength",
   "windblown.options.strength.tooltip": "How far plants sway. 100% is a light breeze; storms blow harder on top of this.",
+  "windblown.options.gusts": "Gusts",
+  "windblown.options.gusts.tooltip": "How much the wind rises and falls in gusts. 0% gives a steady, constant breeze.",
   "windblown.options.grass": "Grass & Flowers",
   "windblown.options.grass.tooltip": "Grass, ferns, flowers, saplings, bushes and other small plants.",
   "windblown.options.crops": "Crops",
