@@ -11,6 +11,8 @@
 		"sodium.GlobalUniformsMixin",
 		"sodium.ShaderLoaderLegacyMixin",
 		"sodium.ShaderLoaderMixin",
+		"sodium.ShaderParserLegacyMixin",
+		"sodium.ShaderParserMixin",
 		"sodium.UniformBufferManagerMixin"${pack_mixins}
 	],
 	"injectors": {
