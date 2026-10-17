@@ -30,6 +30,11 @@ public final class WindblownSettingsScreen extends WindblownOptionsScreen {
                         WindblownConfig.MAX_STRENGTH_PERCENT, config.strength(), config::setStrength),
                         Texts.translatable("windblown.options.strength.tooltip")));
         addRow(
+                toggle("windblown.options.weather", config::weather, config::setWeather),
+                tooltip(new PercentSlider("windblown.options.gusts", 0, WindblownConfig.MAX_GUSTS_PERCENT,
+                        config.gusts(), config::setGusts),
+                        Texts.translatable("windblown.options.gusts.tooltip")));
+        addRow(
                 toggle("windblown.options.grass", config::grass, config::setGrass),
                 toggle("windblown.options.crops", config::crops, config::setCrops));
         addRow(
@@ -37,13 +42,12 @@ public final class WindblownSettingsScreen extends WindblownOptionsScreen {
                 toggle("windblown.options.vines", config::vines, config::setVines));
         addRow(
                 toggle("windblown.options.water_plants", config::waterPlants, config::setWaterPlants),
-                toggle("windblown.options.weather", config::weather, config::setWeather));
+                toggle("windblown.options.rustle", config::rustle, config::setRustle));
         addRow(
-                toggle("windblown.options.rustle", config::rustle, config::setRustle),
                 tooltip(new PercentSlider("windblown.options.rustle_volume", 0, WindblownConfig.MAX_VOLUME_PERCENT,
                         config.rustleVolume(), config::setRustleVolume),
-                        Texts.translatable("windblown.options.rustle_volume.tooltip")));
-        addRow(resetButton(config), null);
+                        Texts.translatable("windblown.options.rustle_volume.tooltip")),
+                resetButton(config));
     }
 
     @Override

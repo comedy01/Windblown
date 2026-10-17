@@ -435,6 +435,10 @@ public final class WindblownSelfTest {
             check(volume.getMessage().getString().endsWith("100%"), "the volume slider does not start at 100%: " + volume.getMessage().getString());
             Ui.click(Screens.current(mc), Ui.x(volume) + 2.0, Ui.y(volume) + volume.getHeight() / 2.0);
             check(config.rustleVolume() == 0f, "the volume slider did not reach 0%: " + config.rustleVolume());
+            AbstractSliderButton gusts = slider(Screens.current(mc), "Gusts");
+            check(gusts.getMessage().getString().endsWith("100%"), "the gusts slider does not start at 100%: " + gusts.getMessage().getString());
+            Ui.click(Screens.current(mc), Ui.x(gusts) + 2.0, Ui.y(gusts) + gusts.getHeight() / 2.0);
+            check(config.gusts() == 0f, "the gusts slider did not reach 0%: " + config.gusts());
         });
         then(5, () -> {
             Screens.open(mc, null);

@@ -39,7 +39,7 @@ public final class WindFrame {
         frame[8] = (float) Math.cos(angle);
         frame[9] = (float) Math.sin(angle);
         frame[10] = Wind.gust(seconds);
-        frame[11] = 0f;
+        frame[11] = on ? WindblownClient.config().gusts() : 0f;
         ByteBuffer out = BYTES_BUFFER;
         out.clear();
         for (int i = 0; i < Wind.FLOATS; i++) {

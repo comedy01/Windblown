@@ -19,8 +19,8 @@ Works with Sodium and Embeddium.
 - **Weather** - rain makes the wind pick up and thunderstorms blow harder still. Plants under a roof or deep in a cave
   barely move.
 - **Rustling** - walking, running or riding through grass, crops and leaves makes them rustle, and so do mobs.
-- **Adjustable** - wind strength from 10% to 300%, each kind of plant can be turned off on its own, and the rustling
-  has its own volume.
+- **Adjustable** - wind strength from 10% to 300%, gusts from 0% for a steady breeze up to 100%, each kind of plant
+  can be turned off on its own, and the rustling has its own volume.
 - **Built to stay fast** - the motion runs in the terrain shader, so chunks are not rebuilt while the wind blows and
   there is no measurable frame rate cost.
 - **Client-side only** - nothing to install on a server.
