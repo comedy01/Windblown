@@ -29,4 +29,20 @@ abstract class ModelBlockRendererMixin {
     private void windblown$exit(CallbackInfoReturnable<Boolean> ci) {
         Foliage.exit();
     }
+
+    @Inject(method = {"tesselateBlock(Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/client/resources/model/BakedModel;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;ZLjava/util/Random;JILnet/minecraftforge/client/model/data/IModelData;)Z"}, remap = false, require = 0, at = @At("HEAD"))
+    private void windblown$enterForge(CallbackInfoReturnable<Boolean> ci, @Local(argsOnly = true) BlockAndTintGetter level,
+                                      @Local(argsOnly = true) BlockState state, @Local(argsOnly = true) BlockPos pos) {
+        try {
+            Foliage.enter(state, level, pos);
+        } catch (RuntimeException e) {
+            Foliage.exit();
+            WindblownClient.fail(e);
+        }
+    }
+
+    @Inject(method = {"tesselateBlock(Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/client/resources/model/BakedModel;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;ZLjava/util/Random;JILnet/minecraftforge/client/model/data/IModelData;)Z"}, remap = false, require = 0, at = @At("RETURN"))
+    private void windblown$exitForge(CallbackInfoReturnable<Boolean> ci) {
+        Foliage.exit();
+    }
 }
