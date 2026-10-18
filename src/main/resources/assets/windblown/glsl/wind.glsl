@@ -28,8 +28,9 @@ vec3 windblown_offset(vec3 pos, float a, float sky) {
     float t = WindblownInfo.x;
     vec2 dir = WindblownWind.xy;
     vec2 side = vec2(-dir.y, dir.x);
-    float along = dot(world.xz, dir);
-    float across = dot(world.xz, side);
+    vec2 axis = vec2(0.825336, 0.564642);
+    float along = dot(world.xz, axis);
+    float across = dot(world.xz, vec2(-axis.y, axis.x));
 
     if (kind > 2.5) {
         float phase = t * 0.9 - along * 0.21 + across * 0.13 + world.y * 0.35;

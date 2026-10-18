@@ -71,8 +71,8 @@ public final class Rustle {
             }
             TRAVEL.put(id, 0f);
             NEXT.put(id, stride());
-            float size = Mth.clamp(entity.getBbWidth() * entity.getBbHeight() / 1.08f, 0.25f, 1.6f);
-            float pace = Mth.clamp(0.45f + (float) moved * 2.2f, 0.45f, 1.2f);
+            float size = Math.max(0.25f, Math.min(1.6f, entity.getBbWidth() * entity.getBbHeight() / 1.08f));
+            float pace = Math.max(0.45f, Math.min(1.2f, 0.45f + (float) moved * 2.2f));
             float volume = config.rustleVolume() * pace * (float) Math.sqrt(size) * (entity == mc.player ? 0.18f : 0.14f);
             float pitch = (0.88f + RANDOM.nextFloat() * 0.24f) / (float) Math.sqrt(Math.max(0.5f, size));
             SoundEvent sound = category == Foliage.LEAVES ? LEAVES : category == Foliage.CROPS ? CROPS : GRASS;
