@@ -5,10 +5,29 @@ import net.minecraft.client.Minecraft;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+import java.lang.reflect.Method;
 import java.nio.FloatBuffer;
 
 public final class RawUniforms {
     private static final Int2ObjectOpenHashMap<int[]> PROGRAMS = new Int2ObjectOpenHashMap<>();
+    // Sodium/Embeddium GlProgram extends GlObject, which has "public final int handle()" in every version.
+    private static final ClassValue<MethodHandle> HANDLES = new ClassValue<MethodHandle>() {
+        @Override
+        protected MethodHandle computeValue(Class<?> type) {
+            try {
+                Method method = type.getMethod("handle");
+                if (method.getReturnType() != int.class) {
+                    return null;
+                }
+                return MethodHandles.publicLookup().unreflect(method).asType(MethodType.methodType(int.class, Object.class));
+            } catch (ReflectiveOperationException | RuntimeException e) {
+                return null;
+            }
+        }
+    };
     private static volatile boolean changed;
     private static volatile boolean any;
     private static int frame;
@@ -17,6 +36,7 @@ public final class RawUniforms {
     private static FloatBuffer camera;
     private static FloatBuffer wind;
     private static long uploads;
+    private static long programQueries;
 
     private RawUniforms() {
     }
@@ -25,19 +45,47 @@ public final class RawUniforms {
         return uploads;
     }
 
+    public static long programQueries() {
+        return programQueries;
+    }
+
     public static void shadersChanged() {
         changed = true;
         any = true;
+    }
+
+    public static void forgetPrograms() {
+        changed = true;
     }
 
     public static void newFrame() {
         frame++;
     }
 
-    public static void onCurrentProgram() {
-        if (any) {
-            onUse(GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM));
+    /**
+     * Called after a Sodium GlProgram is bound. Reads the program id from the Java object instead of asking the
+     * driver with glGetInteger(GL_CURRENT_PROGRAM): that query makes the render thread wait for the driver thread
+     * when NVIDIA "Threaded optimization" is on, and Sodium binds programs many times per frame.
+     */
+    public static void onBind(Object glProgram) {
+        if (!any) {
+            return;
         }
+        MethodHandle handle = HANDLES.get(glProgram.getClass());
+        if (handle != null) {
+            int program;
+            try {
+                program = (int) handle.invokeExact(glProgram);
+            } catch (Throwable e) {
+                program = 0;
+            }
+            if (program != 0) {
+                onUse(program);
+                return;
+            }
+        }
+        programQueries++;
+        onUse(GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM));
     }
 
     public static void onUse(int program) {

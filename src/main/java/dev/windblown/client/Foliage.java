@@ -22,6 +22,7 @@ public final class Foliage {
     public static final int HANG = 5;
     public static final int WALL = 6;
     public static final int FULL = 7;
+    public static final int FLAT = 8;
 
     private static final int STACK_REACH = 5;
     private static final ThreadLocal<Sway> SWAY = ThreadLocal.withInitial(Sway::new);
@@ -140,6 +141,7 @@ public final class Foliage {
         float stiffness = category == CROPS ? 0.75f : 1f;
         switch (shape(info)) {
             case FULL -> set(sway, WindCode.LEAVES, 1f, 0f);
+            case FLAT -> set(sway, ground, 0.55f * stiffness, 2.5f * stiffness);
             case WALL -> set(sway, WindCode.LEAVES, 0.6f, 0f);
             case HANG -> set(sway, WindCode.HANGING, 1f, -1f);
             case LOWER -> set(sway, ground, 0f, 0.5f * stiffness);

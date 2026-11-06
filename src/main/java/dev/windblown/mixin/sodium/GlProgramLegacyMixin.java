@@ -12,6 +12,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 abstract class GlProgramLegacyMixin {
     @Inject(method = "bind", at = @At("TAIL"), remap = false, require = 0)
     private void windblown$bind(CallbackInfo ci) {
-        RawUniforms.onCurrentProgram();
+        RawUniforms.onBind(this);
     }
 }

@@ -11,7 +11,7 @@ Works with Sodium and Embeddium.
 ## Features
 
 - **Plants sway in the wind** - grass, ferns, flowers, saplings, crops, tall plants, sugar cane and bamboo bend with
-  the wind, rooted at the ground so nothing floats.
+  the wind, rooted at the ground so nothing floats. Pink petals, wildflowers and leaf litter ripple gently.
 - **Leaves and vines too** - tree leaves shiver and drift, vines and hanging roots swing, seagrass and kelp drift in a
   slow current under water.
 - **Gusts you can see** - the wind comes in waves that roll across a field in one direction, which slowly turns over

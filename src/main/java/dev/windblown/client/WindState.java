@@ -10,6 +10,8 @@ public final class WindState {
     private static float weather = 1f;
     private static float air = 1f;
     private static int mask = -1;
+    private static Object level;
+    private static int settle;
 
     private WindState() {
     }
@@ -25,8 +27,23 @@ public final class WindState {
                 Rebuilds.all(mc);
             }
         }
+        if (mc.level != level) {
+            level = mc.level;
+            if (level != null) {
+                // A new world: reset like an off/on toggle does, then rebuild once the world has settled.
+                Foliage.configure(tagging, config);
+                mask = wanted;
+                RawUniforms.forgetPrograms();
+                settle = 40;
+            }
+        }
         if (mc.level == null) {
+            settle = 0;
             return;
+        }
+        if (settle > 0 && --settle == 0 && mc.levelRenderer != null) {
+            RawUniforms.forgetPrograms();
+            Rebuilds.all(mc);
         }
         float target = config.weather() ? Wind.weather(mc.level.getRainLevel(1f), mc.level.getThunderLevel(1f)) : 1f;
         weather = Wind.ease(weather, target, TICK, 4f);

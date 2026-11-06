@@ -39,8 +39,13 @@ public final class Plants {
         if (block instanceof LeavesBlock) {
             return Foliage.info(Foliage.LEAVES, Foliage.FULL);
         }
-        if (block instanceof MushroomBlock || block instanceof FlowerBedBlock || block instanceof LeafLitterBlock
-                || block instanceof SmallDripleafBlock) {
+        if (block instanceof FlowerBedBlock) {
+            return Foliage.info(Foliage.GRASS, Foliage.FLAT);
+        }
+        if (block instanceof LeafLitterBlock) {
+            return Foliage.info(Foliage.LEAVES, Foliage.FLAT);
+        }
+        if (block instanceof MushroomBlock || block instanceof SmallDripleafBlock) {
             return Foliage.NONE;
         }
         if (block instanceof KelpBlock || block instanceof KelpPlantBlock) {
@@ -71,6 +76,9 @@ public final class Plants {
         if (block instanceof MangrovePropaguleBlock && state.getValue(MangrovePropaguleBlock.HANGING)) {
             return Foliage.info(Foliage.VINES, Foliage.HANG);
         }
+        if (flowerBed(state)) {
+            return Foliage.info(Foliage.GRASS, Foliage.FLAT);
+        }
         if (block instanceof VegetationBlock) {
             return Foliage.info(Foliage.GRASS, Foliage.SINGLE);
         }
@@ -81,6 +89,16 @@ public final class Plants {
             return Foliage.info(Foliage.VINES, Foliage.HANG);
         }
         return Foliage.NONE;
+    }
+
+    // Modded multi-flower blocks (Sweety's Garden: anemones, hepatica, wood sorrel...) built like pink petals.
+    private static boolean flowerBed(BlockState state) {
+        for (net.minecraft.world.level.block.state.properties.Property<?> p : state.getProperties()) {
+            if (p.getName().equals("flower_amount")) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static int half(BlockState state) {

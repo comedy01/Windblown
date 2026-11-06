@@ -15,9 +15,12 @@ import dev.windblown.client.gui.WindblownSettingsScreen;
 import dev.windblown.config.WindblownConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.client.gui.components.events.ContainerEventHandler;
 import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.gui.screens.PauseScreen;
+import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.client.server.IntegratedServer;
 import net.minecraft.client.tutorial.TutorialSteps;
 import org.apache.logging.log4j.LogManager;
@@ -39,6 +42,7 @@ import java.util.stream.Stream;
 
 public final class WindblownSelfTest {
     private static final String WORLD = "windblown-selftest";
+    private static final String WORLD_2 = "windblown-selftest-2";
     private static final int TIMEOUT = 2400;
 
     private static volatile int frames;
@@ -201,6 +205,20 @@ public final class WindblownSelfTest {
             kind(mc, 12, floor - 3, 18, Foliage.WATER, Foliage.STACK_UP, "kelp");
             kind(mc, 13, floor - 3, 18, Foliage.WATER, Foliage.SINGLE, "seagrass");
             kind(mc, 0, floor - 1, 3, Foliage.NONE, Foliage.SINGLE, "grass block");
+            if (mc.level.getBlockState(new BlockPos(-4, floor, 2)).getBlock().getDescriptionId().endsWith("pink_petals")) {
+                kind(mc, -4, floor, 2, Foliage.GRASS, Foliage.FLAT, "pink petals");
+            }
+            if (mc.level.getBlockState(new BlockPos(-8, floor, 2)).getBlock().getDescriptionId().endsWith("hepatica")) {
+                kind(mc, -8, floor, 2, Foliage.GRASS, Foliage.FLAT, "Sweety's Garden hepatica");
+                log("Sweety's Garden hepatica sways as a flower bed");
+            }
+            if (mc.level.getBlockState(new BlockPos(-6, floor, 2)).getBlock().getDescriptionId().endsWith("leaf_litter")) {
+                kind(mc, -6, floor, 2, Foliage.LEAVES, Foliage.FLAT, "leaf litter");
+                Foliage.Sway litter = Foliage.begin(mc.level.getBlockState(new BlockPos(-6, floor, 2)), mc.level, new BlockPos(-6, floor, 2));
+                float litterWeight = litter == null ? 0f : dev.windblown.core.WindCode.weight(Foliage.alpha(litter, 0.25f / 16f));
+                log("leaf litter sway weight on the ground: " + litterWeight);
+                check(litterWeight >= 0.4f, "leaf litter lying on the ground should sway, weight " + litterWeight);
+            }
             kind(mc, 7, floor, 9, Foliage.NONE, Foliage.SINGLE, "oak log");
             check(Foliage.tagging() == !shaders, "plants are tagged while a shader pack is on, or untagged without one");
             if (sodium && !shaders && !ShaderPatches.applied(ShaderPatches.SODIUM_TERRAIN + "-raw")) {
@@ -208,6 +226,7 @@ public final class WindblownSelfTest {
             }
             if (!shaders && (Backend.RAW_UNIFORMS || ShaderPatches.applied(ShaderPatches.SODIUM_TERRAIN + "-raw"))) {
                 check(RawUniforms.uploads() > 0, "the wind uniforms were never uploaded");
+                check(RawUniforms.programQueries() == 0, "the Sodium bind hook fell back to glGetInteger " + RawUniforms.programQueries() + " times");
             }
             check(WindFrame.sending() == !shaders, "wind data sent while a shader pack is on, or not sent without one");
             screenshot(mc, "meadow");
@@ -318,6 +337,74 @@ public final class WindblownSelfTest {
             Screens.open(mc, null);
             hideHud = false;
         });
+        switchWorlds(mc, sodium);
+    }
+
+    private void switchWorlds(Minecraft mc, boolean sodium) {
+        WindblownConfig config = WindblownClient.config();
+        int floor = ServerCompat.FLOOR;
+        then(5, () -> {
+            log("leaving the world through the pause menu");
+            Screens.open(mc, new PauseScreen(true));
+        });
+        then(10, () -> {
+            AbstractButton quit = find(Screens.current(mc), AbstractButton.class, "Save and Quit");
+            check(quit != null, "no Save and Quit button on the pause screen");
+            Ui.click(Screens.current(mc), Ui.x(quit) + quit.getWidth() / 2.0, Ui.y(quit) + quit.getHeight() / 2.0);
+        });
+        when(() -> mc.level == null && mc.getSingleplayerServer() == null && Screens.overlay(mc) == null
+                && Screens.current(mc) instanceof TitleScreen, () -> {
+            log("at the title screen, opening a second world");
+            deleteWorld(mc, WORLD_2);
+            Worlds.create(mc, WORLD_2, true, 1L);
+        });
+        when(() -> mc.level != null && mc.player != null && Screens.current(mc) == null
+                && mc.getSingleplayerServer() != null, () -> log("second world loaded"));
+        then(40, () -> {
+            hideHud = true;
+            run(mc, "gamerule doDaylightCycle false");
+            run(mc, "gamerule advance_time false");
+            run(mc, "gamerule doWeatherCycle false");
+            run(mc, "gamerule advance_weather false");
+            run(mc, "time set 6000");
+            run(mc, "weather clear");
+            meadow(mc, floor);
+            run(mc, "tp @p 0.5 " + floor + " -1.5 0 12");
+        });
+        then(60, () -> {
+            log("after switching worlds: tagging " + Foliage.tagging() + ", sending " + WindFrame.sending()
+                    + ", uploads " + RawUniforms.uploads());
+            kind(mc, 0, floor, 3, Foliage.GRASS, Foliage.SINGLE, "short grass in the second world");
+            check(Foliage.tagging() == !shaders, "plants are not tagged in the second world");
+            check(WindFrame.sending() == !shaders, "no wind data is sent in the second world");
+            config.setStrength(3f);
+        });
+        motion(mc, "after switching worlds");
+        then(1, () -> {
+            double moved = motion();
+            log(String.format(Locale.ROOT, "meadow motion after switching worlds: %.3f", moved));
+            if (!shaders) {
+                check(moved > 0.6, String.format(Locale.ROOT, "the meadow does not move after switching worlds (%.3f)", moved));
+            }
+            config.setStrength(1f);
+            hideHud = false;
+        });
+    }
+
+    private static <T> T find(GuiEventListener node, Class<T> type, String caption) {
+        if (type.isInstance(node) && node instanceof net.minecraft.client.gui.components.AbstractWidget widget
+                && widget.getMessage().getString().startsWith(caption)) {
+            return type.cast(node);
+        }
+        if (node instanceof ContainerEventHandler container) {
+            for (GuiEventListener child : container.children()) {
+                T found = find(child, type, caption);
+                if (found != null) {
+                    return found;
+                }
+            }
+        }
+        return null;
     }
 
     private static void meadow(Minecraft mc, int f) {
@@ -340,6 +427,10 @@ public final class WindblownSelfTest {
         }
         run(mc, "setblock -2 " + f + " 3 minecraft:poppy");
         run(mc, "setblock 0 " + f + " 3 minecraft:short_grass");
+        // Flower beds; older versions without these blocks keep the short grass there.
+        run(mc, "setblock -4 " + f + " 2 minecraft:pink_petals[flower_amount=4]");
+        run(mc, "setblock -6 " + f + " 2 minecraft:leaf_litter[segment_amount=4]");
+        run(mc, "setblock -8 " + f + " 2 sweety_garden:hepatica[flower_amount=4]");
         run(mc, "fill -10 " + (f - 1) + " 16 -6 " + (f - 1) + " 18 minecraft:farmland[moisture=7]");
         run(mc, "fill -10 " + f + " 16 -6 " + f + " 18 minecraft:wheat[age=7]");
         run(mc, "fill 7 " + f + " 9 7 " + (f + 3) + " 9 minecraft:oak_log");
