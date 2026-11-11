@@ -5,6 +5,7 @@ import dev.windblown.client.Foliage;
 import dev.windblown.client.ShaderPatches;
 import dev.windblown.client.WindblownClient;
 import dev.windblown.client.sodium.LegacyVertices;
+import dev.windblown.client.sodium.SwayState;
 import dev.windblown.core.WindCode;
 import me.jellysquid.mods.sodium.client.render.chunk.compile.pipeline.BlockRenderContext;
 import me.jellysquid.mods.sodium.client.render.chunk.compile.pipeline.BlockRenderer;
@@ -34,6 +35,7 @@ abstract class BlockRendererMixin {
     @ModifyVariable(method = "renderModel", at = @At("HEAD"), argsOnly = true, remap = false, require = 0)
     private BlockRenderContext windblown$block(BlockRenderContext ctx) {
         windblown$swaying = false;
+        SwayState.get().swaying = false;
         try {
             BlockGetter world;
             if (windblown$legacy) {
@@ -63,10 +65,20 @@ abstract class BlockRendererMixin {
                 windblown$sway.base = sway.base;
                 windblown$sway.slope = sway.slope;
                 windblown$swaying = true;
+                SwayState state = SwayState.get();
+                state.sway.kind = sway.kind;
+                state.sway.base = sway.base;
+                state.sway.slope = sway.slope;
+                state.swaying = true;
             }
         } catch (RuntimeException e) {
             WindblownClient.fail(e);
         }
+    }
+
+    @Inject(method = "renderModel", at = @At("RETURN"), remap = false, require = 0)
+    private void windblown$end(CallbackInfo ci) {
+        SwayState.get().swaying = false;
     }
 
     @ModifyArg(method = "writeGeometry", at = @At(value = "INVOKE",

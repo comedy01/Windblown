@@ -1,1 +1,3 @@
 sodium.BlockRendererMixin
+sodium.SinkingVertexBuilderMixin
+sodium.IndiumTerrainContextMixin
