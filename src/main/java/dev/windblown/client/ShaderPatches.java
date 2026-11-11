@@ -25,7 +25,10 @@ public final class ShaderPatches {
     private static final String DEFINE = "#define WINDBLOWN_GLOBALS\n";
     private static final String RAW = "uniform vec4 WindblownInfo;\nuniform vec4 WindblownCamera;\nuniform vec4 WindblownWind;\n#define WINDBLOWN_GLOBALS\n";
 
-    private record Block(String name, String layout) {
+    private record Block(String name, String layout, int padStart) {
+        Block(String name, String layout) {
+            this(name, layout, 0);
+        }
     }
 
     private record Terrain(String name, Pattern input, String color, Pattern position, String sky, boolean sodium) {
@@ -36,8 +39,15 @@ public final class ShaderPatches {
                     + "floatGameTime;vec2ScreenSize;intMenuBlurRadius;intUseRgss;"),
             new Block(VANILLA_GLOBALS, "layout(std140)uniformGlobals{ivec3CameraBlockPos;vec3CameraOffset;vec2ScreenSize;"
                     + "floatGlintAlpha;floatGameTime;intMenuBlurRadius;intUseRgss;"),
+            // padStart: std140 offset where WindblownPad (or Firelight's fields) begins, rounded up to 16
             new Block(SODIUM_GLOBALS, "layout(std140)uniformu_Globals{mat4u_ProjectionMatrix;mat4u_ModelViewMatrix;"
-                    + "vec4u_FogColor;vec2u_EnvironmentFog;vec2u_RenderFog;vec2u_TexelSize;vec2u_TexCoordShrink;floatu_FadePeriodInv;boolu_UseRGSS;"));
+                    + "vec4u_FogColor;vec2u_EnvironmentFog;vec2u_RenderFog;vec2u_TexelSize;vec2u_TexCoordShrink;floatu_FadePeriodInv;boolu_UseRGSS;", 192),
+            // Sodium 0.9.3-beta.3+ added u_CameraOffset, which moves everything after it by 16 bytes
+            new Block(SODIUM_GLOBALS, "layout(std140)uniformu_Globals{mat4u_ProjectionMatrix;mat4u_ModelViewMatrix;"
+                    + "vec4u_FogColor;vec3u_CameraOffset;vec2u_EnvironmentFog;vec2u_RenderFog;vec2u_TexelSize;vec2u_TexCoordShrink;"
+                    + "floatu_FadePeriodInv;boolu_UseRGSS;", 208));
+
+    public static final int MAX_SODIUM_PAD_START = BLOCKS.stream().mapToInt(Block::padStart).max().orElse(0);
 
     private static final List<Terrain> TERRAINS = List.of(
             new Terrain(VANILLA_TERRAIN, Pattern.compile("\\bin\\s+vec4\\s+Color\\s*;"), "windblown_Color",
@@ -52,12 +62,18 @@ public final class ShaderPatches {
 
     private static final Set<String> APPLIED = ConcurrentHashMap.newKeySet();
     private static String code;
+    private static volatile int sodiumPadStart = -1;
 
     private ShaderPatches() {
     }
 
     public static boolean applied(String name) {
         return APPLIED.contains(name);
+    }
+
+    /** std140 offset of WindblownPad in the patched Sodium globals block, or -1 if not patched yet. */
+    public static int sodiumPadStart() {
+        return sodiumPadStart;
     }
 
     public static String patch(String name, String source) {
@@ -92,6 +108,9 @@ public final class ShaderPatches {
                 if (own.equals(block.layout()) && !(Backend.RAW_UNIFORMS && block.name().equals(VANILLA_GLOBALS))) {
                     String withFields = source.substring(0, close).stripTrailing() + (firelight ? "" : PAD) + FIELDS + "\n"
                             + source.substring(close);
+                    if (block.name().equals(SODIUM_GLOBALS)) {
+                        sodiumPadStart = block.padStart();
+                    }
                     APPLIED.add(block.name());
                     if (firelight) {
                         APPLIED.add(block.name() + "-firelight");
@@ -109,20 +128,23 @@ public final class ShaderPatches {
     }
 
     private static String terrain(String name, String source) throws IOException {
+        // Match against a copy with comments blanked out (same length, so offsets line up with source).
+        // Litematica's legacy_terrain.vsh has "// vec3 pos = Position + ..." above the real line.
+        String clean = blankComments(source);
         for (Terrain terrain : TERRAINS) {
             if (terrain.sodium() && !source.contains("_vert_tex_light_coord")) {
                 continue;
             }
-            Matcher position = terrain.position().matcher(source);
+            Matcher position = terrain.position().matcher(clean);
             if (!position.find()) {
                 continue;
             }
-            Matcher input = terrain.input() == null ? null : terrain.input().matcher(source);
-            if (input != null && (!input.find() || !terrainLike(name, source))) {
+            Matcher input = terrain.input() == null ? null : terrain.input().matcher(clean);
+            if (input != null && (!input.find() || !terrainLike(name, clean))) {
                 continue;
             }
-            int main = source.indexOf("void main()");
-            int body = main < 0 ? -1 : source.indexOf('{', main);
+            int main = clean.indexOf("void main()");
+            int body = main < 0 ? -1 : clean.indexOf('{', main);
             if (body < 0 || position.start() < body || (input != null && input.start() > main)) {
                 continue;
             }
@@ -180,6 +202,30 @@ public final class ShaderPatches {
             }
         }
         return code;
+    }
+
+    static String blankComments(String source) {
+        char[] out = source.toCharArray();
+        int i = 0;
+        while (i < out.length - 1) {
+            if (out[i] == '/' && out[i + 1] == '/') {
+                while (i < out.length && out[i] != '\n') {
+                    out[i++] = ' ';
+                }
+            } else if (out[i] == '/' && out[i + 1] == '*') {
+                int end = source.indexOf("*/", i + 2);
+                end = end < 0 ? out.length : end + 2;
+                while (i < end) {
+                    if (out[i] != '\n') {
+                        out[i] = ' ';
+                    }
+                    i++;
+                }
+            } else {
+                i++;
+            }
+        }
+        return new String(out);
     }
 
     private static String squash(String text) {

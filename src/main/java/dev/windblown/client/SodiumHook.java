@@ -6,7 +6,6 @@ import org.apache.logging.log4j.Logger;
 import java.nio.ByteBuffer;
 
 public final class SodiumHook {
-    public static final int OFFSET = 192 + WindFrame.FIRELIGHT_BYTES;
     private static final Logger LOGGER = LogManager.getLogger(WindblownClient.MOD_ID);
     private static volatile boolean sized;
     private static volatile boolean ran;
@@ -15,7 +14,8 @@ public final class SodiumHook {
     }
 
     public static int blockSize(int size) {
-        int needed = (OFFSET + WindFrame.BYTES + 255) / 256 * 256;
+        // may run before the shader is patched, so size for the largest known layout
+        int needed = (ShaderPatches.MAX_SODIUM_PAD_START + WindFrame.FIRELIGHT_BYTES + WindFrame.BYTES + 255) / 256 * 256;
         sized = true;
         return Math.max(size, needed);
     }
@@ -24,7 +24,11 @@ public final class SodiumHook {
         if (!sized || !ShaderPatches.applied(ShaderPatches.SODIUM_GLOBALS)) {
             return;
         }
-        int offset = buffer.position() + OFFSET;
+        int padStart = ShaderPatches.sodiumPadStart();
+        if (padStart < 0) {
+            return;
+        }
+        int offset = buffer.position() + padStart + WindFrame.FIRELIGHT_BYTES;
         if (offset + WindFrame.BYTES > buffer.limit() || Compat.shaderPackInUse()) {
             return;
         }

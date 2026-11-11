@@ -131,7 +131,7 @@ if (project.hasProperty("extramods")) {
 	}
 }
 
-def sodiumVersion = versionProps.getProperty("sodium_version")
+def sodiumVersion = project.findProperty("sodium") ?: versionProps.getProperty("sodium_version")
 if (sodiumVersion != null && (project.hasProperty("sodium") || project.hasProperty("iris"))) {
 	def plain = versionProps.getProperty("sodium_plain") == "true"
 	def sodium = plain ? "maven.modrinth:sodium:${sodiumVersion}" : "maven.modrinth:sodium:${sodiumVersion}-${loader}"
